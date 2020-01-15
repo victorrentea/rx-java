@@ -1,7 +1,7 @@
-package victor.training.rx.compacting;
+package victor.training.rx.slowing;
 
 import rx.Observable;
-import victor.training.rx.IrregularEmmit;
+import victor.training.rx.exercise.IrregularEmmit;
 import victor.training.rx.ConcurrencyUtil;
 
 import java.util.List;

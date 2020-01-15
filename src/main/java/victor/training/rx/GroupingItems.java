@@ -8,9 +8,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class Transformations {
+public class GroupingItems {
     public static void main(String[] args) {
-        sendPointsToGame(Arrays.asList(1, 3, 2, 5, 4, 1, 2, 5, 6));
         sendWonPoint(Arrays.asList("A", "B", "B", "A", "B", "B", "A", "A", "A"));
     }
 
@@ -24,19 +23,5 @@ public class Transformations {
                     group.subscribe(p -> points[playerIndex]++);
                 });
         System.out.println(Arrays.toString(points));
-    }
-
-    private static void sendPointsToGame(List<Integer> pointsSequence) {
-        Observable<Integer> pointsObservable =
-                Observable.from(pointsSequence)
-                        .map(n -> {
-                            ConcurrencyUtil.sleep(100);
-                            return n;
-                        });
-
-        Observable<Integer> totalPointsObservable = pointsObservable.scan(0, Integer::sum);
-
-        totalPointsObservable.sample(200, TimeUnit.MILLISECONDS)
-                .subscribe(n -> System.out.println("Points " + n));
     }
 }

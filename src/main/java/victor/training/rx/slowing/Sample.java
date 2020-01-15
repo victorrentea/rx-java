@@ -1,20 +1,20 @@
-package victor.training.rx.compacting;
+package victor.training.rx.slowing;
 
 import rx.Observable;
-import victor.training.rx.IrregularEmmit;
+import victor.training.rx.exercise.IrregularEmmit;
 import victor.training.rx.ConcurrencyUtil;
 
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Arrays.asList;
 
-public class Debounce {
+public class Sample {
     public static void main(String[] args) {
 
-        IrregularEmmit.emitAtIntervals(asList(1, 1, 1, 1, 1, 1, 1, 1, 100, 1, 1, 1, 1, 1, 100, 1000))
+        IrregularEmmit.emitAtIntervals(asList(45,45,45,45,45,45,45,45,46,45,45,45,45,45,45,45,45,45,46))
                 .scan("", (s, tick) -> s + "x")
-                .debounce(50, TimeUnit.MILLISECONDS)
-                .flatMap(Debounce::doSearchOverHttp)
+                .sample(50, TimeUnit.MILLISECONDS)
+                .flatMap(Sample::doSearchOverHttp)
                 .subscribe(r -> System.out.println(r));
 
         ConcurrencyUtil.sleep(3000);

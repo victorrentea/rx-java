@@ -1,4 +1,4 @@
-package victor.training.rx.exercise;
+package victor.training.rx;
 
 import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
@@ -9,12 +9,9 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ErrorHandling {
     public static void main(String[] args) {
-
         Observable
                 .interval(100, TimeUnit.MILLISECONDS)
-                .doOnSubscribe(() -> {
-                    System.out.println("(re)subscribe");
-                })
+                .doOnSubscribe(() -> System.out.println("(re)subscribe"))
                 .map(tick -> {
                     if (Math.random()<0.2){
                         throw new IllegalArgumentException();
@@ -29,9 +26,7 @@ public class ErrorHandling {
 //                .onErrorReturn(t -> -1)
 //                .retry()
 //                .onErrorResumeNext(Observable.interval(100, TimeUnit.MILLISECONDS).take(10).map(i -> 10L - i))
+                .toBlocking()
                 .subscribe(i -> log.debug("got " + i));
-
-
-        ConcurrencyUtil.sleep(3000);
     }
 }
