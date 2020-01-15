@@ -1,5 +1,6 @@
 package victor.training.rx.exercise;
 
+import lombok.extern.slf4j.Slf4j;
 import rx.Observable;
 import rx.Subscriber;
 import victor.training.rx.ConcurrencyUtil;
@@ -7,38 +8,40 @@ import victor.training.rx.ConcurrencyUtil;
 import java.util.concurrent.TimeUnit;
 
 import static victor.training.rx.ConcurrencyUtil.log;
+import static victor.training.rx.ConcurrencyUtil.sleep;
 
+@Slf4j
 public class SubscriberVsObserver {
     public static void main(String[] args) {
-        Subscriber<Long> subscriber = new Subscriber<Long>() {
-            @Override
-            public void onCompleted() {
-                ConcurrencyUtil.log("DONE");
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                ConcurrencyUtil.log("ERR");
-            }
-
-            @Override
-            public void onNext(Long aLong) {
-                ConcurrencyUtil.log("elem " + aLong);
-            }
-        };
+        Subscriber<Long> subscriber = new MySubscriber();
         Observable.interval(500, TimeUnit.MILLISECONDS)
-            .map(n -> {
-                ConcurrencyUtil.log("Square " + n);
-                return n * n;
-            })
+            .doOnUnsubscribe(() -> log.debug("Unsubscribed"))
             .subscribe(subscriber);
-        ConcurrencyUtil.sleep(1600);
+        sleep(1600);
 
+        log.debug("Calling .unsubscribe");
+        subscriber.unsubscribe();
+        // TODO: use Observer instead
+        // TODO: use an Action instead
 
-        subscriber.unsubscribe(); // TODO switch to Observer and try this again
-        ConcurrencyUtil.log("Unsubscribed");
+        sleep(1000);
+        log.debug("END");
+    }
 
-        ConcurrencyUtil.sleep(1000);
-        ConcurrencyUtil.log("END");
+    private static class MySubscriber extends Subscriber<Long> {
+        @Override
+        public void onCompleted() {
+            log.debug("DONE");
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            log.debug("ERR");
+        }
+
+        @Override
+        public void onNext(Long aLong) {
+            log.debug("ELEM:" + aLong);
+        }
     }
 }
