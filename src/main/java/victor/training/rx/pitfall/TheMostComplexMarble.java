@@ -11,10 +11,7 @@ public class TheMostComplexMarble {
 
     private static Observable<Integer> fibonacciObservable() {
         // TODO: implement an infinite fibonacci observable
-        return Observable.just(1)
-                .repeat()
-                .scan(new int[]{1,1}, (arr, i) -> new int[]{arr[1], arr[0] + arr[1]})
-                .map(arr -> arr[0]);
+        return Observable.just(1);
     }
 
     public static void main(String[] args) {
@@ -34,12 +31,7 @@ public class TheMostComplexMarble {
                     }
                 })
                 // TODO retry with a fibonacci backoff delay
-                .retryWhen(attempts ->
-                        attempts.zipWith(fibonacciObservable(), (e, fib) -> fib)
-                                .flatMap(fib -> {
-                                    log.debug("Delaying retry by "+ fib + " ms");
-                                    return Observable.timer(fib, TimeUnit.MILLISECONDS);
-                                }))
+
                 .toBlocking()
                 .subscribe(System.out::println);
     }
