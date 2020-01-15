@@ -18,24 +18,10 @@ public class TheMostComplexMarble {
     }
 
     public static void main(String[] args) {
-//        fibonacciObservable()
-//                .take(100)
-//                .subscribe(System.out::println);
-
-
-//        Observable.defer(() -> Observable.just(f()))
-//        Observable.fromCallable(() -> f())
-////                .subscribeOn(Schedulers.io())
-//                .subscribe(System.out::println);
-//
-//        ThreadUtils.sleep(1000);
-
-//        fibonacciObservable()
-//                .take(10)
-//                .scan(0, Integer::sum)
-//                .flatMap(fib -> Observable.timer(fib, TimeUnit.MILLISECONDS).map(t->fib))
-//                .subscribe(v -> log.debug("valXX " + v));
-
+        fibonacciObservable()
+                .take(30)
+                .toList()
+                .subscribe(System.out::println);
 
 
         long t0 = System.currentTimeMillis();
@@ -48,28 +34,16 @@ public class TheMostComplexMarble {
                     }
                 })
                 // TODO retry with a fibonacci backoff delay
-                .retryWhen(failures -> {
-                    System.out.println("Ruleaza 1 DATA!");
-
-//                    Observable<Long> latente = Observable.interval(100, TimeUnit.MILLISECONDS);
-                    Observable<Integer> latente = fibonacciObservable()
-                            .take(100)
-                            .scan(0, Integer::sum)
-                            .flatMap(fib -> Observable.timer(fib, TimeUnit.MILLISECONDS).map(t -> fib));
-
-                    return failures.zipWith(latente, (e, t)->t);
-                })
+                .retryWhen(attempts ->
+                        attempts.zipWith(fibonacciObservable(), (e, fib) -> fib)
+                                .flatMap(fib -> {
+                                    log.debug("Delaying retry by "+ fib + " ms");
+                                    return Observable.timer(fib, TimeUnit.MILLISECONDS);
+                                }))
 
                 .subscribe(System.out::println);
 
-
         ConcurrencyUtil.sleep(5000);
     }
-
-    private static int f() {
-        log.debug("Generez");
-        return 1;
-    }
-
 
 }
