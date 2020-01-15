@@ -11,59 +11,42 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class SharingRequests {
     public static void main(String[] args) {
-        log.debug("Start");
+        // TODO avoid doing two expensive network calls
+
+        System.out.println("===Re-Subscribe :(===");
+        Observable<String> call = getFromHttp();
+        call.subscribe(v -> System.out.println("Store in cache: " + v));
+        call.subscribe(v -> System.out.println("Hand over to app"));
 
         System.out.println("===ConnectableObserver===");
-        Observable<String> call = getFromHttp();
-        ConnectableObservable<String> birouDeschis = call.publish();
-        // TODO avoid doing two expensive network calls
-        birouDeschis.subscribe(v -> System.out.println("Pun in cas: " + v));
-        birouDeschis.subscribe(v-> System.out.println("Dau aplicatiei"));
-        birouDeschis.connect(); // abia acum observable-ul incepe sa emita
-        birouDeschis.subscribe(v-> System.out.println("Dau aplicatiei 3 = NU RULEAZA"));
 
         System.out.println("===autoConnect===");
-        Observable<String> pornesteAutomatCandAre2 = getFromHttp().publish().autoConnect(2);
-        pornesteAutomatCandAre2.subscribe(v -> System.out.println("Pun in cas: " + v));
-        pornesteAutomatCandAre2.subscribe(v -> System.out.println("Dau aplicatiei"));
-        pornesteAutomatCandAre2.subscribe(v -> System.out.println("Dau aplicatiei 3  = NU RULEAZA"));
 
         System.out.println("===encapsulatedCache:chainObservers===");
         // PROBLEM: launches the first http request before .subscribe is called here.
         getFromHttpOrCache().subscribe(System.out::println);
 
         System.out.println("===.defer to fix above===");
-        Observable.defer(() -> getFromHttpOrCache());// correct ugly solution
 
 
-        System.out.println("===Time Observable that doesn't restart on subscribe===");
-        Observable<Long> timp = Observable.interval(100, TimeUnit.MILLISECONDS).share();
-        timp.subscribe(System.out::println);
+        System.out.println("===.interval Observable that doesn't restart on re-subscribe===");
+        Observable<Long> time = Observable.interval(100, TimeUnit.MILLISECONDS);
+        time.subscribe(System.out::println);
         ConcurrencyUtil.sleep(1000);
-        timp.subscribe(System.out::println);
-        ConcurrencyUtil.sleep(2000);
     }
 
     private static Observable<String> getFromHttpOrCache() {
-        // PROBLEMA: iti face HTTP req chiar daca observableul intors nu e subscris de nimeni.
         BehaviorSubject<String> subject = BehaviorSubject.create();
-        getFromHttp()
-                .subscribe(v -> {
-                    System.out.println("punInCache " + v);
-                    subject.onNext(v);
-                });
+        // TODO chain Observable
+        // TODO onNext
         return subject.asObservable();
-
-        // parca tot mai bun e asta:
-//        return httpCallObs().doOnNext(v -> System.out.println("punInCache " + v));
-
     }
 
     private static Observable<String> getFromHttp() {
         return Observable.fromCallable(() -> {
             log.debug("Sent HTTP Request. Waiting for response");
             ConcurrencyUtil.sleep(1000);
-            log.debug("Got Response.");
+            log.debug("Got Response");
             return "response";
         });
     }

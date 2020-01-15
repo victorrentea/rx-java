@@ -18,6 +18,9 @@ public class ConcurrencyUtil {
 		return min + random.nextInt(max-min);
 	}
 	
+	public static void sleep(double seconds) {
+		sleep((long)(1000 * seconds));
+	}
 	public static void sleep(long millis) {
 		try {
 			Thread.sleep(millis);
