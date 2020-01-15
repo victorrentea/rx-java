@@ -12,27 +12,18 @@ import java.util.concurrent.TimeUnit;
 public class RetryUntilOK {
 
     public static void main(String[] args) {
-        // TODO Single toObservable
-        // TODO handle errors
-        // TODO stop at first OK response: take(1) or first()?
-
         log.debug("Start");
-        Observable.range(1, 3)
-            .zipWith(Observable.interval(0, 1, TimeUnit.SECONDS), (i,t) -> i)
-            .flatMap(retryIndex ->getDeliveryEstimation(retryIndex)
-                        .toObservable()
-                        .onErrorReturn(t->new Response(10000, null)))
-            .takeUntil(response -> response.getStatusCode() == 200)
-            .filter(response -> response.getStatusCode() == 200)
-            .first()
-            .toBlocking()
-            .subscribe(response -> System.out.println("Dau aplicatiei " + response));
+        // TODO: Retry max 3 times, with 1 sec between them. Each retry needs a sequential index
+        // TODO stop at first OK response: take(1) or first()?
+        // TODO error handling
+        // TODO more Observable adoption
+
 
     }
 
     public static Single<Response> getDeliveryEstimation(int retryIndex) {
         log.debug("GET /url/order?retry=" + retryIndex);
-        switch (new Random().nextInt(3)) {
+        switch (new Random().nextInt(2)) {
             // TODO try throwing errors (set 3 as bound above) -> kills the Observable
             case 0:
                 log.debug("Return 200");

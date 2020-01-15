@@ -7,7 +7,7 @@ import rx.Single;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class Single1 {
+public class SingleToObservable {
     public static void main(String[] args) {
 
         Single<Integer> single = Single.just(1);

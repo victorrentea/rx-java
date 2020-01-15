@@ -8,7 +8,7 @@ import victor.training.rx.ConcurrencyUtil;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class SubscribeOnVsObserveOn {
+public class SchedulersControl {
     public static void main(String[] args) {
 
         // TODO understand this:
@@ -20,7 +20,7 @@ public class SubscribeOnVsObserveOn {
                 .map(String::toUpperCase)
                 .observeOn(Schedulers.io())
                 .doOnNext(msg -> log.debug("3:" + msg))
-                .flatMap(SubscribeOnVsObserveOn::httpCall)
+                .flatMap(SchedulersControl::httpCall)
                 .doOnNext(b -> log.debug("4:" + b))
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.newThread())

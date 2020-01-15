@@ -16,7 +16,7 @@ import victor.training.rx.bug.FxPlatformScheduler;
 
 import java.util.concurrent.TimeUnit;
 
-public class Chart extends Application {
+public class ChartFxApp extends Application {
     private static final int screenWidth = 800;
     private static final int screenHeight = 600;
     public static final int Y0 = screenHeight - 20;
@@ -27,7 +27,7 @@ public class Chart extends Application {
     private long t0 = System.currentTimeMillis();
 
     public static void main(String[] args) {
-        Application.launch(Chart.class);
+        Application.launch(ChartFxApp.class);
     }
 
     @Override
