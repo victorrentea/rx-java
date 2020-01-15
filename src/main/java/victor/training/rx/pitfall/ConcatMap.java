@@ -6,8 +6,8 @@ import java.util.concurrent.TimeUnit;
 
 public class ConcatMap {
     public static void main(String[] args) {
-        Observable.range(1, 3)
-            .concatMap(i -> Observable.interval(100, TimeUnit.MILLISECONDS).take(5))
+        Observable.just("a","b","c")
+            .flatMap(x -> Observable.interval(100, TimeUnit.MILLISECONDS).map(tick->x).take(3))
             .toBlocking()
             .subscribe(System.out::println);
     }
