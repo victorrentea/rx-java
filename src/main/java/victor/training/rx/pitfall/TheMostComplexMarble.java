@@ -40,10 +40,8 @@ public class TheMostComplexMarble {
                                     log.debug("Delaying retry by "+ fib + " ms");
                                     return Observable.timer(fib, TimeUnit.MILLISECONDS);
                                 }))
-
+                .toBlocking()
                 .subscribe(System.out::println);
-
-        ConcurrencyUtil.sleep(5000);
     }
 
 }
