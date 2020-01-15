@@ -1,4 +1,4 @@
-package victor.training.rx;
+package victor.training.rx.slowing;
 
 import rx.Observable;
 

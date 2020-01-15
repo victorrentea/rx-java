@@ -24,7 +24,7 @@ public class StartWith {
                 .toBlocking()
                 .subscribe(x -> uiBlock(x));
 
-        // TODO cursu viitor: gpsObs().startWith(GPSacum()).subscribe(handleLocation)
+        // TODO Sample usage: gpsObs().startWith(GPSacum()).subscribe(handleLocation)
 
 
     }
