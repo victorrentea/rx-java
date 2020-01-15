@@ -12,6 +12,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import rx.Observable;
 import rx.subscriptions.Subscriptions;
+import victor.training.rx.bug.FxPlatformScheduler;
 
 import java.util.concurrent.TimeUnit;
 

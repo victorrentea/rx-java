@@ -1,4 +1,4 @@
-package victor.training.rx.bug;
+package victor.training.rx;
 
 import rx.Observable;
 

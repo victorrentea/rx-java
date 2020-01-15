@@ -60,13 +60,13 @@ public class BugsLifeGame extends Application {
         root.getChildren().add(createSky());
 
 
+        // TODO: on KeyCode.ESCAPE -> System.exit()
+        // TODO try to unsubscribe after 2 sec
+
+        // TODO use TestScheduler
+
         // TODO create an observer that fires every 10ms on the computation() thread,
         //  but its subscribers (+operators) run in the GUI event loop thread
-
-        Scheduler testScheduler = createTestScheduler(scene);
-        Observable<Long> time = Observable.interval(10, TimeUnit.MILLISECONDS, testScheduler)
-                .observeOn(new FxPlatformScheduler());
-
 
 
         // ====== TILES =======
@@ -74,17 +74,7 @@ public class BugsLifeGame extends Application {
         tiles.forEach(root.getChildren()::add);
 
         // TODO make every tile move left with BUG_SPEED, and then return from right when out (translateX <= -width)
-//                    tile.setTranslateX(screenWidth - BUG_SPEED);
-
-        time.subscribe(tick -> {
-            for (ImageView tile : tiles) {
-                if (tile.getTranslateX() <= -tileImage.getWidth()) {
-                    tile.setTranslateX(screenWidth);
-                } else {
-                    tile.setTranslateX(tile.getTranslateX() - BUG_SPEED);
-                }
-            }
-        });
+        //                    tile.setTranslateX(screenWidth - BUG_SPEED);
 
         // ========== SUN ===========
         showHeart(false);
@@ -93,17 +83,9 @@ public class BugsLifeGame extends Application {
 
         // TODO make sun move left with BUG_SPEED, and then return from right when out (translateX <= -width)
 
-        time.subscribe(tick -> {
-            if (sun.getTranslateX() <= -sun.getImage().getWidth()) {
-                sun.setTranslateX(screenWidth);
-            } else {
-                sun.setTranslateX(sun.getTranslateX() - BUG_SPEED);
-            }
-        });
 
         // ========== BUG ===========
         double groundY = (-tileImage.getHeight() / 2) - 5;
-        double gravity = 0.1;
 
         bug.setImage(new Image(getResourceUri("Bug.png")));
         bug.setTranslateY(groundY);
@@ -113,69 +95,25 @@ public class BugsLifeGame extends Application {
         // ========== JUMPS ===========
         PublishSubject<Double> jumps = PublishSubject.create();
 
+        double gravity = 0.1;
         // TODO jump dynamics with gravity: remember Y decreases UPWARDS
+        // Hint: decrease until y <= groundY + dy, else set on ground
         double jumpSpeed = 8;
-        jumps.flatMap(v0 -> time
-                        .scan(jumpSpeed, (v, tick) -> v - gravity)
-                        .takeUntil(jumps)
-//                    .takeWhile(v -> v == jumpSpeed || bug.getTranslateY() != groundY)
-        )
-                .subscribe(dy -> {
-//                    System.out.println(dy);
-                    if (bug.getTranslateY() <= groundY + dy) {
-                        bug.setTranslateY(bug.getTranslateY() - dy);
-                    } else {
-                        bug.setTranslateY(groundY);
-                    }
-                });
 
         // TODO on SPACE jump up with this speed
         // OPT play sound: new AudioClip(getResourceUri("smb3_jump.wav")).play()
 
-        keyPresses(scene)
-                .filter(e -> e.getCode() == KeyCode.SPACE)
-                .filter(e -> bug.getTranslateY() == groundY)
-                .subscribe(e -> jumps.onNext(jumpSpeed));
 
 
         // TODO observable of positions: sun.localToScene(sun.getLayoutBounds());
 
-        Observable<Bounds> sunPosition = time.map(tick -> sun.localToScene(sun.getLayoutBounds()));
-
-        Observable<Bounds> bugPosition = time.map(tick -> bug.localToScene(bug.getLayoutBounds()));
-
-        Observable<Boolean> enterExit = Observable.combineLatest(sunPosition, bugPosition, Bounds::intersects)
-                .distinctUntilChanged()
-//                .doOnNext(x -> System.out.println("NU"))
-                ;
-
-
-        enterExit.subscribe(this::showHeart);
-        Observable<Boolean> hitObs = enterExit.filter(b -> b);
-        hitObs.subscribe(enter -> new AudioClip(getResourceUri("smb3_coin.wav")).play());
 
         // TODO intersect the observable of positions, and fire only when they intersect. ONLY ONCE.
-//        Observable<List<Boolean>> hitsObservable =
-
 
 
         // TODO increment and display a score: scoreText.setText("Score: " + count);
+        // OPT: new AudioClip(getResourceUri("smb3_coin.wav")).play();
 
-        hitObs
-                .scan(0,(s,t)->s+1)
-                .subscribe(s -> scoreText.setText("Score: " + s));
-
-        scoreText.setFont(Font.font("Consolas", FontWeight.BOLD, 40));
-        root.getChildren().add(scoreText);
-
-        // TODO: on KeyCode.ESCAPE -> System.exit()
-
-        Subscription abonament = keyPresses(scene)
-                .filter(e -> e.getCode() == KeyCode.ESCAPE)
-                .subscribe(event -> System.exit(0));
-
-//        Observable.timer(2, TimeUnit.SECONDS)
-//            .subscribe(t -> abonament.unsubscribe());
 
         stage.setOnShown(e -> new AudioClip(getResourceUri("smb3_power-up.wav")).play());
         stage.setTitle("A Bugs Life");
@@ -184,11 +122,8 @@ public class BugsLifeGame extends Application {
     }
 
     private Scheduler createTestScheduler(Scene scene) {
-        TestScheduler testScheduler = new TestScheduler();
-        keyPresses(scene).filter(e->e.getCode() == KeyCode.ENTER).subscribe(e -> {
-            testScheduler.advanceTimeBy(10000 / 60, TimeUnit.MILLISECONDS);
-        });
-        return testScheduler;
+        // TODO advance time on ENTER pressed
+        return null;
     }
 
     private Canvas createSky() {
@@ -225,15 +160,9 @@ public class BugsLifeGame extends Application {
     }
 
     public static Observable<KeyEvent> keyPresses(Scene scene) {
-        return Observable.unsafeCreate(subscriber -> {
-            EventHandler<KeyEvent> handler = subscriber::onNext;
-            scene.addEventHandler(KeyEvent.KEY_PRESSED, handler);
-
-            subscriber.add(Subscriptions.create(() -> {
-                System.out.println("S-a dezabonat");
-                scene.removeEventHandler(KeyEvent.KEY_PRESSED, handler);
-            }));
-        });
+        // Hint: Can you subscribe back to a subscriber?! Why?!
+        // Hint: Subscriptions.create(f)
+        return null;
     }
 
 

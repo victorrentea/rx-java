@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 import rx.Observable;
 import rx.subjects.PublishSubject;
 import rx.subscriptions.Subscriptions;
+import victor.training.rx.bug.FxPlatformScheduler;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class SnakeGame extends Application {
         board = new Board(canvas, NO_PIXELS);
 
         Observable.interval(1, TimeUnit.SECONDS)
-//                .observeOn(new FxPlatformScheduler())
+                .observeOn(new FxPlatformScheduler())
                 .takeUntil(gameEnded)
                 .subscribe(tick -> advanceSnake());
 
@@ -68,11 +69,11 @@ public class SnakeGame extends Application {
 
         Observable.interval(10, TimeUnit.SECONDS)
                 .startWith(1L, 10L)
-//                .observeOn(new FxPlatformScheduler())
+                .observeOn(new FxPlatformScheduler())
                 .subscribe(flowerCreate::onNext);
 
         Observable.interval(1, TimeUnit.SECONDS)
-//                .observeOn(new FxPlatformScheduler())
+                .observeOn(new FxPlatformScheduler())
                 .takeUntil(gameEnded)
                 .subscribe(tick -> {
                     timeLeft --;
