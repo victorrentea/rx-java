@@ -1,4 +1,4 @@
-package victor.training.rx;
+package victor.training.rx.exercise;
 
 import javafx.util.Pair;
 import rx.Completable;

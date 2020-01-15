@@ -7,41 +7,26 @@ import rx.Observable;
 
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 @Slf4j
 public class FlatMapZip {
     public static void main(String[] args) {
-
         log.debug("Start");
+        Observable<Long> movieIdObs = Observable.just(13L, 14L, 15L);
 
-        // useru face un click pt filmul 13
-        Observable<Long> movieIdObs = Observable.just(13L);
-        Observable<String> plotObs = movieIdObs.flatMap(FlatMapZip::requestPlot);
-        Observable<Float> ratingOps = movieIdObs.flatMap(FlatMapZip::requestRating);
+        // TODO for each ID, call requestPlot and requestRating, zip the results and println them
 
-        Observable.zip(plotObs, ratingOps, PlotAndRating::new)
-                .subscribe(FlatMapZip::display);
-
-//        movieIdObs.flatMap(id ->
-//                Observable.zip(requestPlot(id), requestRating(id), PlotAndRating::new))
-//                .subscribe(pr -> display(pr.getPlot(), pr.getRating()));
-
-        ConcurrencyUtil.sleep(3000);
-    }
-
-    public static void display(PlotAndRating pr ) {
-        System.out.println("Movie " + pr.getPlot() + " and " + pr.getRating());
+        // TODO zip->flatMap vs flatMap->zip
     }
 
     public static Observable<Float> requestRating(long movieId) {
-        return Observable.just(3.5f)
-                    .delay(1, TimeUnit.SECONDS);
+        return Observable.just(3.5f).delay(1, SECONDS);
     }
     public static Observable<String> requestPlot(long movieId) {
-        return Observable.just("mare")
-                    .delay(2, TimeUnit.SECONDS);
+        return Observable.just("mare").delay(2, SECONDS);
     }
 }
-
 
 @Value
 class PlotAndRating {
