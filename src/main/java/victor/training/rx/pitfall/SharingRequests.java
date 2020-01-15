@@ -33,6 +33,10 @@ public class SharingRequests {
         Observable<Long> time = Observable.interval(100, TimeUnit.MILLISECONDS);
         time.subscribe(System.out::println);
         ConcurrencyUtil.sleep(1000);
+
+        // TODO play with cache
+
+        // TODO play with replay
     }
 
     private static Observable<String> getFromHttpOrCache() {
