@@ -11,41 +11,33 @@ import java.util.concurrent.TimeUnit;
 public class SubscribeOnVsObserveOn {
     public static void main(String[] args) {
 
-//        Observable.defer(() -> f())
-//                .subscribeOn(Schedulers.computation())
-//                .observeOn(Schedulers.io())
-//                .doOnNext(log::info)
-//                .subscribeOn(Schedulers.io())
-//                .subscribe(log::debug);
-//        ThreadUtils.sleep(1000);
-//
-//
-//        // TODO understand this:
-        Observable.defer(() -> f()) // io
+        // TODO understand this:
+        Observable.defer(() -> f())
                 .subscribeOn(Schedulers.io())
-                .doOnNext(log::debug) // io
+                .doOnNext(msg -> log.debug("1:" + msg))
                 .observeOn(Schedulers.computation())
-                .doOnNext(log::debug) //com
+                .doOnNext(msg -> log.debug("2:" + msg))
                 .map(String::toUpperCase)
                 .observeOn(Schedulers.io())
-                .doOnNext(log::debug) // io
-                .flatMap(SubscribeOnVsObserveOn::httpCall) // io
-                .doOnNext(b->log.debug("ok?"+b)) // io GRESIT: era comput
+                .doOnNext(msg -> log.debug("3:" + msg))
+                .flatMap(SubscribeOnVsObserveOn::httpCall)
+                .doOnNext(b -> log.debug("4:" + b))
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.newThread())
-                .doOnNext(x -> log.debug("" + x))
+                .doOnNext(x -> log.debug("5:" + x))
                 .toBlocking()
-                .subscribe(b->log.debug("end:"+b)); //new GRESIT: era main
+                .subscribe(b -> log.debug("6:" + b));
+
         ConcurrencyUtil.sleep(2000);
     }
 
     private static Observable<String> f() {
-        log.debug("Generez");
+        log.debug("f()");
         return Observable.just("a");
     }
 
     public static Observable<Boolean> httpCall(String s) {
-        log.debug("Lansez HTTP");
+        log.debug("Calling HTTP");
         return Observable.just(s.equals("A"))
                 .delay(1, TimeUnit.SECONDS);
     }
