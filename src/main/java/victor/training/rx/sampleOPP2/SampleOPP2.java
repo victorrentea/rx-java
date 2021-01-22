@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.Map.Entry;
 
+// lavinia.soroiu
 public class SampleOPP2
 
 {
@@ -116,7 +117,7 @@ public class SampleOPP2
 
    private Single<Map<String, ImmutablePair<String, List<String>>>> getOrderToTourToSsccs(LocationId locationId, Map<String, List<String>> tourToSsccs) {
 
-      Func1<Entry<String, List<String>>, Observable<Map<String, ImmutablePair<String, List<String>>>>> fa = tourToSsccsEntry ->
+      Func1<Entry<String, List<String>>, Observable<Map<String, ImmutablePair<String, List<String>>>>> f = tourToSsccsEntry ->
              sscc2OrderIdService.getSscc2OrderIdEntriesBySsccList(locationId, tourToSsccsEntry.getValue())
              .reduce(new HashMap<>(), this::groupByOrderId)
           ;

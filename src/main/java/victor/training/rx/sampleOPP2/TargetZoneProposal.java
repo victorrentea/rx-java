@@ -10,5 +10,6 @@ public class TargetZoneProposal {
    }
 
    public static TargetZoneProposal fromResult(String s) {
+      return null;
    }
 }

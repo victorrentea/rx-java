@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
+// lavinia.soroiu
 public class SampleOPP1 {
    private OrderServiceClient orderServiceClient;
    private OPPFeatures oppFeatures;
