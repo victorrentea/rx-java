@@ -8,8 +8,6 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Single;
 import rx.functions.Func1;
-import rx.functions.Func2;
-import sun.awt.geom.AreaOp;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -21,7 +19,7 @@ public class SampleOPP2
 {
    private static final Logger LOGGER = LoggerFactory.getLogger(SampleOPP2.class);
    private TourInfoRepository tourInfoRepository;
-   private SSCC2OrdeeIdService sscc2OrderIdService;
+   private SSCC2OrderIdService sscc2OrderIdService;
    private SlotTrackingRepository slotTrackingRepository;
    private PickingJobInfoRepository pickingJobInfoRepository;
    private ProposalService proposalService;
@@ -57,6 +55,22 @@ public class SampleOPP2
                 return Single.error(new BadRequestException("An unexpected error occurred.", error));
              }
           });
+   }
+      int i= 1;
+
+   public void method(boolean b) {
+
+   i= 6;
+      if (b) {
+         i = 2;
+      }
+      i =3;
+
+      f();
+   }
+
+   private void f() {
+//      System.out.println(i);
    }
 
 

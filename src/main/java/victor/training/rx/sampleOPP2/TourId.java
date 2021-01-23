@@ -4,4 +4,8 @@ public class TourId {
    public static TourId fromString(String tourId) {
       return null;
    }
+
+   public String asString() {
+      return null;
+   }
 }

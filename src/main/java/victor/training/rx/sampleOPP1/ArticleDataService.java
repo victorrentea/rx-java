@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ArticleDataService {
-   public Single<Map<String, String>> getEanBundleMapForReferencedArticles(Long locationId, Long picklistId, List<String> extractReferencedBundleIdsFromItems) {
+   public Single<Map<String, String>> getEanBundleMapForReferencedArticles(String locationId, Long picklistId, List<String> extractReferencedBundleIdsFromItems) {
       return null;
    }
 }

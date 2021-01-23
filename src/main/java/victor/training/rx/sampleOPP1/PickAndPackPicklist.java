@@ -11,11 +11,15 @@ public class PickAndPackPicklist {
       return null;
    }
 
-   public Long getLocationId() {
+   public String getLocationId() {
       return null;
    }
 
    public Long getPicklistId() {
+      return null;
+   }
+
+   public String getOldTourId() {
       return null;
    }
 }
