@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import rx.Completable;
 import rx.Observable;
 import victor.training.rx.sample.opp2.*;
-import victor.training.rx.sampleOPP2.*;
 
 public class SampleMircea2
 {

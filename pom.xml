@@ -72,9 +72,9 @@
                 <version>3.8.1</version>
                 <configuration>
                     <compilerArgs>--enable-preview</compilerArgs>
-                    <!--<source>1.8</source>
-                    <target>1.8</target>-->
-                    <release>15</release>
+                    <source>1.8</source>
+                    <target>1.8</target>
+
                 </configuration>
             </plugin>
         </plugins>

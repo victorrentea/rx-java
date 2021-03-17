@@ -131,12 +131,10 @@ public class SampleOPP2
 
    private Single<Map<String, ImmutablePair<String, List<String>>>> getOrderToTourToSsccs(LocationId locationId, Map<String, List<String>> tourToSsccs) {
 
-      Func1<Entry<String, List<String>>, Observable<Map<String, ImmutablePair<String, List<String>>>>> f = tourToSsccsEntry ->
-             sscc2OrderIdService.getSscc2OrderIdEntriesBySsccList(locationId, tourToSsccsEntry.getValue())
-             .reduce(new HashMap<>(), this::groupByOrderId)
-          ;
       return Observable.from(tourToSsccs.entrySet())
-          .concatMap(f
+          .concatMap(tourToSsccsEntry ->
+                 sscc2OrderIdService.getSscc2OrderIdEntriesBySsccList(locationId, tourToSsccsEntry.getValue())
+                  .reduce(new HashMap<>(), this::groupByOrderId)
           )
           .reduce(this::mergeOrderToTourToSsccsMaps)
           .doOnCompleted(() -> LOGGER.info("Order to tour to ssccs has been generated successfully for tour to ssccs map {}", tourToSsccs))
