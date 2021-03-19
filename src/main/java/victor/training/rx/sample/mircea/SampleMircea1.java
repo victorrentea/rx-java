@@ -4,12 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Completable;
 import rx.Observable;
+import rx.Single;
 import victor.training.rx.sample.opp2.LocationId;
 import victor.training.rx.sample.opp2.TourId;
 
 public class SampleMircea1 {
    private static final Logger LOGGER = LoggerFactory.getLogger(SampleMircea1.class);
-    private Completable processPickingJobInfo(Tourswitch tourswitch) {
+    private Completable processPickingJobInfo(Tourswitch tourswitch) { // Mono<Void>
        return Completable.defer(() -> // TODO victor de ce e necesar defer daca find returneaza  Observable?
            // TODO victor push reactivity down
        {
@@ -26,6 +27,9 @@ public class SampleMircea1 {
        });
     }
 
+   public static void main(String[] args) {
+      System.out.println(Single.just(null).toBlocking().value());
+   }
    private Observable<?> manageNewTour(Tourswitch tourswitch, Object pickingJobInfos) {
        // TODO victor network call ? (i hope)
       return null;
@@ -33,10 +37,12 @@ public class SampleMircea1 {
 
    private Observable<?> removePicklistFromPickingJoInfo(Tourswitch tourswitch, PickingJobInfo pickingJobInfo) {
        // TODO victor network call ? (i hope)
-      return null;
+
+      Single<String> singleStuff = Single.just("");
+      return singleStuff.toObservable().toSingle().toObservable();// webClient.bodyAsMono();
    }
 
-   private Observable<PickingJobInfo> findPickingJobInfoByPicklistId(TourId fromString, Object fromString1, Long picklistId) {
+   private Observable<PickingJobInfo> findPickingJobInfoByPicklistId(TourId fromString, LocationId fromString1, Long picklistId) {
        return null;
     }
 

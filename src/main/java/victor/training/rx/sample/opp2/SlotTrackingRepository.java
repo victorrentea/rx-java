@@ -1,7 +1,7 @@
 package victor.training.rx.sample.opp2;
 
-import rx.Completable;
 import rx.Observable;
+import rx.Single;
 import victor.training.rx.sample.mircea.SingleSlotTrackingUpdated;
 
 import java.util.List;
@@ -11,7 +11,7 @@ public class SlotTrackingRepository {
       return null;
    }
 
-   public Completable insertSSCCs(SingleSlotTrackingUpdated singleSlotTrackingUpdated) {
-      return null;
+   public Single<SingleSlotTrackingUpdated> insertSSCCs(SingleSlotTrackingUpdated singleSlotTrackingUpdated) {
+      return Single.just(singleSlotTrackingUpdated);
    }
 }

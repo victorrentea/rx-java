@@ -21,31 +21,38 @@ public class SampleMircea3 {
       LOGGER.debug("Created asynchronous triggerProposalUpdatesAfterAssignment in mtp inactive mode for tourId {}, proposedZoneName {}", slotTrackingUpdated.getTourId(), zoneNameFromSlotId);
 
       pickingJobInfoRepository.getPickingJobInfosForLocation(LocationId.fromString(slotTrackingUpdated.getLocationId()))
-          .filter(pji -> hasSameProposedZone(zoneNameFromSlotId, pji.getProposedZoneName()) || hasSameTourId(slotTrackingUpdated.getTourId(), pji.getTourId()))
-          .filter(pji -> !config.isMopActive(pji.getAssortmentArea()))
+          .filter(pji -> canProcess(slotTrackingUpdated, zoneNameFromSlotId, config, pji))
+
           .groupBy(this::locationIdAreaTourIdTuple, PickingJobInfo::getPickingJobId)
-          .doOnNext(locationIdAreaTourIdTuple -> LOGGER.debug("Started asynchronous triggerProposalUpdatesAfterAssignment for tourId {}, proposedZoneName {}, ARGS {}, {}, {}, {}",
-              slotTrackingUpdated.getTourId(), zoneNameFromSlotId,
-              locationIdAreaTourIdTuple.getKey().getT1(),
-              locationIdAreaTourIdTuple.getKey().getT2(),
-              locationIdAreaTourIdTuple.getKey().getT3().asString()))
+//          .doOnNext(locationIdAreaTourIdTuple -> logLocationArea(slotTrackingUpdated, zoneNameFromSlotId, locationIdAreaTourIdTuple))
+
           .concatMap(groupedPickingJobInfo -> proposalService.calculateAndPublishProposal(
               groupedPickingJobInfo.getKey().getT1(),
               groupedPickingJobInfo.getKey().getT2(),
               groupedPickingJobInfo.getKey().getT3().asString(),
-              groupedPickingJobInfo.asObservable()) // TODO victor de ce ?
-              .doOnError(e -> LOGGER.error("asynchronous triggerProposalUpdatesAfterAssignment failed for picking job group '{}'", groupedPickingJobInfo.getKey(), e))
-              .onErrorResumeNext(Observable.empty())
-              .doOnCompleted(() -> LOGGER.info("Finished asynchronous triggerProposalUpdatesAfterAssignment for tourId {}, proposedZoneName {}",
-                     slotTrackingUpdated.getTourId(), zoneNameFromSlotId)))
+              groupedPickingJobInfo)
+              .onErrorResumeNext(Observable.empty()))
           .subscribeOn(scheduler)
           .subscribe(   // TODO victor ?!!! Why do you subscribe programatically?
               next -> { /* ignore */ },
-              error -> LOGGER.error("Error during asynchronous triggerProposalUpdatesAfterAssignment", error),
-              () -> LOGGER.debug("Subscribed asynchronous triggerProposalUpdatesAfterAssignment")
+              error -> LOGGER.error("Error during asynchronous job triggerProposalUpdatesAfterAssignment", error),
+              () -> LOGGER.debug("Completed the  asynchronous job triggerProposalUpdatesAfterAssignment")
           );
 
       return Completable.complete();
+   }
+
+   private boolean canProcess(SingleSlotTrackingUpdated slotTrackingUpdated, String zoneNameFromSlotId, OppFlexibleWaveDetails config, PickingJobInfo pji) {
+      return (hasSameProposedZone(zoneNameFromSlotId, pji.getProposedZoneName()) || hasSameTourId(slotTrackingUpdated.getTourId(), pji.getTourId()))
+             && !config.isMopActive(pji.getAssortmentArea());
+   }
+
+   private void logLocationArea(SingleSlotTrackingUpdated slotTrackingUpdated, String zoneNameFromSlotId, rx.observables.GroupedObservable<Tuple3<LocationId, String, TourId>, String> locationIdAreaTourIdTuple) {
+      LOGGER.debug("Started asynchronous triggerProposalUpdatesAfterAssignment for tourId {}, proposedZoneName {}, ARGS {}, {}, {}, {}",
+          slotTrackingUpdated.getTourId(), zoneNameFromSlotId,
+          locationIdAreaTourIdTuple.getKey().getT1(),
+          locationIdAreaTourIdTuple.getKey().getT2(),
+          locationIdAreaTourIdTuple.getKey().getT3().asString());
    }
 
    private Tuple3<LocationId, String, TourId> locationIdAreaTourIdTuple(PickingJobInfo pickingJobInfo) {

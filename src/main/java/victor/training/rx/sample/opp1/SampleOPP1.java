@@ -19,15 +19,14 @@ public class SampleOPP1 {
 
    private Observable<PickAndPackPicklist> obtainPicklistForOrder(PickAndPackOrderHeader order, BettyRequestContext requestContext) {
       return orderServiceClient.getPicklistsForOrderId(order.getOrderId(), requestContext)
-          .doOnError(error -> warnOnError(order, error))
           // return an empty list so that no events are created but the OrderUpdated events gets committed
           .onErrorReturn(e -> ImmutableList.of())
           .map(pickLists -> Lists.transform(pickLists, pl -> new ImmutablePair<>(pl, pickLists)))
           .flatMapObservable(Observable::from)
           .map(picklistPair -> PicklistTranslator.joinOrderWithPicklist(order,
-                  (PickListWithOrderData) picklistPair.getLeft(),
-                  (List<PickListWithOrderData>) picklistPair.getRight(),
-                  oppFeatures.getStoreLocations()))
+              picklistPair.getLeft(),
+              picklistPair.getRight(),
+               oppFeatures.getStoreLocations()))
           .flatMap(picklist -> enhanceWithReferencedEansIfStoreLocation(picklist))
           .doOnError(error -> warnOnError(order, error))
           .onErrorResumeNext(e -> Observable.empty());

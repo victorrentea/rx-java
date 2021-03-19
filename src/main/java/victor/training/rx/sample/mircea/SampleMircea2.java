@@ -20,25 +20,27 @@ public class SampleMircea2
       // fetch orderIds based on the SSCCs at once
       LocationId locationId = LocationId.fromString(slotTrackingUpdated.getLocationId());
       TourId tourId = TourId.fromString(slotTrackingUpdated.getTourId());
+
       return sscc2OrderIdService.getSscc2OrderIdEntriesBySsccList(locationId, tourId, slotTrackingUpdated.getSsccs())
           .toMultimap(Sscc2OrderIdEntry::getOrderId, Sscc2OrderIdEntry::getSscc)
-          .flatMap(orderToSsccsMap -> orderInfoRepository.getOrderInfoEntriesByLocationAndOrderIdsList(slotTrackingUpdated.getLocationId(), orderToSsccsMap.keySet())
-              .map(o -> o.setAllSSCC(orderToSsccsMap.get(o.getOrderId()))))
-          // iterate over
+          // one item with a map here
+          .flatMap(orderToSsccsMap ->
+              orderInfoRepository.getOrderInfoEntriesByLocationAndOrderIdsList(slotTrackingUpdated.getLocationId(), orderToSsccsMap.keySet())
+                  .map(o ->  /*new OrderWithSSCs*/o.setAllSSCC(orderToSsccsMap.get(o.getOrderId()))))
+          // many items here
           .flatMap(orderInfoDetail -> Observable.from(orderInfoDetail.getSSCCs())
               .map(sscc -> createSingleSlotTrackingUpdated(slotTrackingUpdated, orderInfoDetail, sscc)))
           // save each SingleSlotTrackingUpdated
           .flatMap(singleSlotTrackingUpdated -> slotTrackingRepository.insertSSCCs(singleSlotTrackingUpdated)
-              .toSingleDefault(singleSlotTrackingUpdated)
               .flatMap(record -> ssccSlotAssignedProducer.publishSingleSlotTrackingUpdated(record))
               .toObservable())
           .cache()
-          .first() // TODO victor: adica vrei doar primul element publicat
+          .first() // ?
           .flatMapCompletable(this::triggerProposalUpdatesAfterAssignment)
-          .toCompletable() // TODO victor useless ?
+          .toCompletable()
           .doOnError(e -> LOGGER.error("An error occurred during the saveSlotTracking for slotTrackingUpdated (Tour {} SlotId {} SSCCs {}): {}",
               slotTrackingUpdated.getTourId(), slotTrackingUpdated.getSlotId(), slotTrackingUpdated.getSsccs(), e.getMessage(), e))
-          .doOnError(e -> Completable.error(new BadRequestException("Could not save the SlotTracking.", e)));
+          .onErrorResumeNext(e -> Completable.error(new BadRequestException("Could not save the SlotTracking.", e)));
 
    }
 

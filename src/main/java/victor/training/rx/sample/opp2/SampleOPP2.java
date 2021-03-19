@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Single;
 import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -40,11 +41,36 @@ public class SampleOPP2
       final Single<Map<String, ImmutablePair<String, List<String>>>> orderToTourToSsccs = getOrderToTourToSsccs(locationId, tourToSsccs);
 
       // maps each zoneName to orders
-      final Single<TreeMap<String, List<String>>> zoneNameToOrderIdsAsSingle = getZoneNameToOrderIds(targetZoneProposalList, orderToTourToSsccs);
+
+//      Single<I1>
+//          .flatMap(I2) :Single<Tuple<I1,I2>>
+//          .flatMap(I3) : STuple<I1,I2,I3>
+
+      return Single.zip(
+          slotTrackingListReducedList,
+          targetZoneProposalList,
+          routeNameToStartTimeMap,
+          orderToTourToSsccs,
+
+          (slotTrackingListReducedListData,
+           targetZoneProposalListData,
+           routeNameToStartTimeMapData,
+           orderToTourToSsccsData) -> {
+
+             final Single<TreeMap<String, List<String>>> zoneNameToOrderIdsAsSingle2 =
+                 getZoneNameToOrderIds(targetZoneProposalListData, Single.just(orderToTourToSsccsData)  ); // TODO give up using Single at all in the #getZoneNameToOrderIds method
 
 
-      return Single.zip(slotTrackingListReducedList, targetZoneProposalList, routeNameToStartTimeMap, orderToTourToSsccs, zoneNameToOrderIdsAsSingle,
-          SlotTrackingsMTPProposal::new)
+             return new SlotTrackingsMTPProposal(slotTrackingListReducedListData,
+                 targetZoneProposalListData, routeNameToStartTimeMapData, orderToTourToSsccsData,
+
+
+                 zoneNameToOrderIdsAsSingle2.toBlocking().value()); // doesn't really block anything here !
+          })
+
+
+
+
           .doOnSuccess(slotTrackingsProposal -> LOGGER.debug("Slot tracking proposal has been successfully zipped {}", slotTrackingsProposal))
           .doOnError(error -> LOGGER.error("An error occurred during the collection of init mtp data for {} {}, with error {}", locationId, pickingJobId, error.getMessage(), error))
           .onErrorResumeNext(error -> {
@@ -89,7 +115,9 @@ public class SampleOPP2
                       locationId, pickingJobMTPInfo.getTourId()))
                   .doOnError(error -> LOGGER.error("An error occurred at proposal service calculation {}", error.getMessage(), error))))
           .toList()
-          .toSingle();
+          .toSingle()
+//          .cache() tricky to understand
+          ;
    }
 
    private Single<List<SlotTrackingListReduced>> getSlotTrackingListReducedList(LocationId locationId, Map<String, List<String>> tourToSsccs) {
@@ -117,6 +145,7 @@ public class SampleOPP2
                   locationId, pickingJobId, error.getMessage(), error)))
           .map(tourInfo -> new ImmutablePair<>(tourInfo.getRouteName(), format(tourInfo.getTourDepartureTime())))
           .toMap(Pair::getKey, Pair::getValue)
+//          .subscribeOn(Schedulers.io())
           .toSingle();
    }
 
@@ -130,6 +159,8 @@ public class SampleOPP2
 //    .reduce(new HashMap<>(), this::groupByOrderId)
 
    private Single<Map<String, ImmutablePair<String, List<String>>>> getOrderToTourToSsccs(LocationId locationId, Map<String, List<String>> tourToSsccs) {
+
+
 
       return Observable.from(tourToSsccs.entrySet())
           .concatMap(tourToSsccsEntry ->
@@ -152,38 +183,42 @@ public class SampleOPP2
       return accumulatorOrderToTourToSsccsMap;
    }
 
-   private Single<TreeMap<String, List<String>>> getZoneNameToOrderIds(Single<List<TargetZoneProposal>> targetZoneProposalList,
+   private Single<TreeMap<String, List<String>>> getZoneNameToOrderIds(List<TargetZoneProposal> targetZoneProposalList,
                                                                        Single<Map<String, ImmutablePair<String, List<String>>>> orderToTourToSsccs) {
       return orderToTourToSsccs.toObservable()
           .flatMap(orderToTourToSsccsMap -> Observable.from(orderToTourToSsccsMap.entrySet()))
 
-          .flatMap(orderToTourEntry -> groupZoneNameToOrderIds(targetZoneProposalList, orderToTourEntry.getValue().getLeft(), orderToTourEntry.getKey()).toObservable())
+          .map(orderToTourEntry -> groupZoneNameToOrderIds(
+              targetZoneProposalList,
+              orderToTourEntry.getValue().getLeft(),
+              orderToTourEntry.getKey()))
+
+
           .reduce(this::mergeZoneNameToOrderIds)
           .toSingle();
    }
 
-   private TreeMap<String, List<String>> mergeZoneNameToOrderIds(TreeMap<String, List<String>> stringListTreeMap, TreeMap<String, List<String>> stringListTreeMap1) {
-      return null;
-   }
-
-   private Single<TreeMap<String, List<String>>> groupZoneNameToOrderIds(Single<List<TargetZoneProposal>> targetZoneProposalList,
+   private TreeMap<String, List<String>> groupZoneNameToOrderIds(List<TargetZoneProposal> targetZoneProposalList,
                                                                          String tourId, String order) {
       final TreeMap<String, List<String>> zoneNameToOrderIds = new TreeMap<>();
 
-      return targetZoneProposalList.map(targetZoneProposals -> targetZoneProposals.stream()
-          .filter(targetZoneProposal -> StringUtils.equals(targetZoneProposal.getTourId(), tourId))
-          .findFirst())
-          .map(Optional::get)
-          .map(targetZoneProposal -> {
-             if (zoneNameToOrderIds.containsKey(targetZoneProposal.getZoneName())) {
-                zoneNameToOrderIds.get(targetZoneProposal.getZoneName()).add(order);
-             } else {
-                List<String> orderIds = new ArrayList<>();
-                orderIds.add(order);
-                zoneNameToOrderIds.put(targetZoneProposal.getZoneName(), orderIds);
-             }
-             return zoneNameToOrderIds;
-          });
+      TargetZoneProposal targetZoneProposal = targetZoneProposalList.stream()
+          .filter(tt -> StringUtils.equals(tt.getTourId(), tourId))
+          .findFirst()
+          .get();
+
+       if (zoneNameToOrderIds.containsKey(targetZoneProposal.getZoneName())) {
+          zoneNameToOrderIds.get(targetZoneProposal.getZoneName()).add(order);
+       } else {
+          List<String> orderIds = new ArrayList<>();
+          orderIds.add(order);
+          zoneNameToOrderIds.put(targetZoneProposal.getZoneName(), orderIds);
+       }
+       return zoneNameToOrderIds;
+   }
+
+   private TreeMap<String, List<String>> mergeZoneNameToOrderIds(TreeMap<String, List<String>> stringListTreeMap, TreeMap<String, List<String>> stringListTreeMap1) {
+      return null;
    }
 
 
